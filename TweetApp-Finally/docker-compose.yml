@@ -1,0 +1,43 @@
+version: '2'
+services:
+  mongodb:
+    image: mongo:4.4.0
+    ports:
+      - "27017:27017"
+    volumes:
+      - ~/apps/mongo:/data/mongodb  
+
+  zookeeper:
+    image: wurstmeister/zookeeper
+    container_name: zookeeper
+    ports:
+      - "2181:2181"
+  kafka:
+    image: wurstmeister/kafka
+    ports:
+      - "9092:9092"
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ADVERTISED_HOST_NAME: kafka
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+
+  my-app:
+    image: tweetapp:spring
+    container_name: my-app
+    ports:
+      - "8080:8080"
+    depends_on:
+      - kafka   
+      - mongodb 
+
+  reactapp:
+    image: react:latest
+    container_name: react-app
+    ports:    
+      - "3000:3000"
+    depends_on:
+      - my-app
+      - mongodb
+     
